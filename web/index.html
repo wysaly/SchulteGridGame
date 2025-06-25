@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="schultegridgame">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>schultegridgame</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+  <div id="game-container">
+    <h1>Schulte Grid Game</h1>
+    <div id="score">分数: <span id="score-value">0</span></div>
+    <button id="start-button">开始游戏</button>
+  </div>
+  <style>
+    #game-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    #start-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+  <script>
+    let score = 0;
+    const scoreDisplay = document.getElementById('score-value');
+    const startButton = document.getElementById('start-button');
+
+    startButton.addEventListener('click', () => {
+      // 导航到Flutter应用的入口页面
+      window.location.href = 'http://localhost:8000'; // 请根据实际情况修改URL
+    });
+
+    function startGame() {
+      // 游戏逻辑的基本实现
+      // 这里可以添加游戏的具体逻辑
+      alert('游戏开始！');
+      // 示例：每秒增加分数
+      const gameInterval = setInterval(() => {
+        score++;
+        scoreDisplay.textContent = score;
+      }, 1000);
+
+      // 停止游戏的示例（可以根据实际逻辑修改）
+      setTimeout(() => {
+        clearInterval(gameInterval);
+        alert('游戏结束！你的分数是: ' + score);
+      }, 10000); // 10秒后结束游戏
+    }
+  </script>
+</body>
+</html>
