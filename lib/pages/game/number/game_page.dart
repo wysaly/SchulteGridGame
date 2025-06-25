@@ -1,6 +1,9 @@
-import 'package:flutter/material.dart';
-import 'dart:math';
 import 'dart:async';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+
+import '../../db_connect_user.dart';
 import 'sound_manager.dart';
 
 enum GameMode { training, challenge }
@@ -156,6 +159,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   void showGameCompleteDialog() {
+    // 在挑战模式下记录完成数据
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -215,6 +219,11 @@ class _GamePageState extends State<GamePage> {
   }
 
   void showGameOverDialog() {
+    // 只在挑战模式下记录最终总时间
+    if (widget.gameMode == GameMode.challenge) {
+      DBService.insertChallengeRecord(totalTime.inSeconds, 0);
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,

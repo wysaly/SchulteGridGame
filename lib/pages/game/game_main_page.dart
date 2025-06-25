@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'number/mode_selection_page.dart'; // 导入模式选择页面
+import 'number/mode_selection_page.dart' as NumberMode;
+import 'poem/mode_selection_page.dart' as PoemMode;
 
 class GameMainPage extends StatelessWidget {
   const GameMainPage({super.key});
@@ -18,10 +19,11 @@ class GameMainPage extends StatelessWidget {
               height: 60,
               child: ElevatedButton(
                 onPressed: () {
+                  // 导航到数字模式选择页面
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ModeSelectionPage(),
+                      builder: (context) => const NumberMode.ModeSelectionPage(),
                     ),
                   );
                 },
@@ -34,10 +36,11 @@ class GameMainPage extends StatelessWidget {
               height: 60,
               child: ElevatedButton(
                 onPressed: () {
+                  // 导航到古诗模式选择页面
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ModeSelectionPage(),
+                      builder: (context) => const PoemMode.ModeSelectionPage(),
                     ),
                   );
                 },

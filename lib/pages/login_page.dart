@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'db_connect_user.dart';
 import 'home_page.dart';
 
 class LoginRegisterPage extends StatefulWidget {
@@ -42,25 +43,41 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
     );
   }
 
-  void _onSubmit() {
+  void _onSubmit() async {
     String account = _accountController.text.trim();
     String password = _passwordController.text;
     String confirm = _confirmController.text;
+
     if (account.isEmpty || password.isEmpty || (!isLogin && confirm.isEmpty)) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('请填写所有必填项')));
       return;
     }
+
     if (!isLogin && password != confirm) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('两次输入的密码不一致')));
       return;
     }
-    // 模拟校验
+
     if (isLogin) {
-      if (account == 'user' && password == '123456') {
+      bool accountExists = await _checkAccountExists(account);
+      if (!accountExists) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('账号不存在')));
+        return;
+      }
+
+      bool passwordCorrect = await _verifyPassword(account, password);
+      if (passwordCorrect) {
+        // 登录成功后获取用户ID
+        final userId = await _getUserId(account);
+        if (userId != null) {
+          DBService.currentUserId = userId; // 保存用户ID到DBService
+        }
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
@@ -68,14 +85,123 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
       } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('登录失败（模拟）：账号或密码错误')));
+        ).showSnackBar(const SnackBar(content: Text('密码错误')));
       }
     } else {
-      // 注册成功直接跳转主页
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+      bool accountExists = await _checkAccountExists(account);
+      if (accountExists) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('账号已存在')));
+        return;
+      }
+
+      bool success = await _registerUser(account, password);
+      if (success) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('注册成功，请登录')));
+        setState(() => isLogin = true);
+        _passwordController.clear();
+        _confirmController.clear();
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('注册失败，请重试')));
+      }
+    }
+  }
+
+  // 检查账号是否存在
+  Future<bool> _checkAccountExists(String account) async {
+    final conn = await DBService.connectIfNotConnected();
+    if (conn == null) {
+      print("❌ 数据库未连接");
+      return false;
+    }
+
+    try {
+      print("🔍 查询账号: $account");
+      final results = await conn.execute(
+        'SELECT id FROM users WHERE account = :account',
+        {'account': account},
       );
+      return results.rows.isNotEmpty;
+    } catch (e) {
+      print("❌ 查询账号失败: $e");
+      return false;
+    }
+  }
+
+  // 获取用户ID
+  Future<int?> _getUserId(String account) async {
+    final conn = await DBService.connectIfNotConnected();
+    if (conn == null) {
+      print("❌ 数据库未连接");
+      return null;
+    }
+
+    try {
+      final results = await conn.execute(
+        'SELECT id FROM users WHERE account = :account',
+        {'account': account},
+      );
+      if (results.rows.isNotEmpty) {
+        final id = results.rows.first.typedColAt(0);
+        if (id is int) {
+          return id;
+        } else if (id is String) {
+          return int.tryParse(id);
+        }
+        return null;
+      }
+      return null;
+    } catch (e) {
+      print("❌ 获取用户ID失败: $e");
+      return null;
+    }
+  }
+
+  // 验证密码是否正确
+  Future<bool> _verifyPassword(String account, String password) async {
+    final conn = await DBService.connectIfNotConnected();
+    if (conn == null) {
+      print("❌ 数据库未连接");
+      return false;
+    }
+
+    try {
+      print(
+        "🔍 验证密码: account=$account, password=${password.isNotEmpty ? '***' : '空'}",
+      );
+      final results = await conn.execute(
+        'SELECT id FROM users WHERE account = :account AND password = :password',
+        {'account': account, 'password': password},
+      );
+      return results.rows.isNotEmpty;
+    } catch (e) {
+      print("❌ 验证密码失败: $e");
+      return false;
+    }
+  }
+
+  // 注册新用户
+  Future<bool> _registerUser(String account, String password) async {
+    final conn = await DBService.connectIfNotConnected();
+    if (conn == null) {
+      print("❌ 数据库未连接");
+      return false;
+    }
+
+    try {
+      final result = await conn.execute(
+        'INSERT INTO users (account, password) VALUES (:account, :password)',
+        {'account': account, 'password': password},
+      );
+      return result.affectedRows > BigInt.from(0);
+    } catch (e) {
+      print("❌ 注册用户失败: $e");
+      return false;
     }
   }
 
