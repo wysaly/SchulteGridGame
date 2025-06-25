@@ -76,7 +76,7 @@ class _ProfilePageState extends State<ProfilePage> {
             CircleAvatar(
               radius: 48,
               backgroundImage: const AssetImage(
-                'D:/flutter_workplace/SchulteGridGame/schultegridgame/assets/images/logo.png',
+                'assets/images/logo.png',
               ), // 请确保有此图片
               backgroundColor: Colors.white,
             ),
