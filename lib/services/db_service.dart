@@ -11,7 +11,7 @@ class DBService {
     'port': 4000,
     'userName': "3JGJ6GdKHkJKyUS.root",
     'password': "KAYqzxI9gUP8BoTe",
-    'databaseName': "poetry",
+    'databaseName': "game_management",
     'secure': true,
   };
 

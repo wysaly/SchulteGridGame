@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pages/crud_page.dart';
+import 'pages/game_management_page.dart';
 
 /// 应用入口
 void main() {
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const CrudPage(),
+      home: const GameManagementPage(),
     );
   }
 }
