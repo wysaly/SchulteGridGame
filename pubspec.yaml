@@ -1,0 +1,30 @@
+name: flutter_tidb_hello
+description: "A new Flutter project."
+publish_to: 'none' # 私有项目不发布到 pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+# 主依赖项
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  mysql_client: ^0.0.27
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+# Flutter 特定配置
+flutter:
+  uses-material-design: true
+
+  # 静态资源文件（如 CA 证书）
+  assets:
+    - assets/certs/tidb-cloud-ca.pem
+
+  # 字体等可选配置（此处省略）
