@@ -1,34 +1,51 @@
-// 游戏主页面，切换数字关卡和古诗词关卡
 import 'package:flutter/material.dart';
 
-import 'number_level_page.dart';
-import 'poem_level_page.dart';
+import 'number/mode_selection_page.dart'; // 导入模式选择页面
 
-class GameMainPage extends StatefulWidget {
-  @override
-  State<GameMainPage> createState() => _GameMainPageState();
-}
-
-class _GameMainPageState extends State<GameMainPage> {
-  int _tabIndex = 0;
-  final List<Widget> _tabs = [NumberLevelPage(), PoemLevelPage()];
+class GameMainPage extends StatelessWidget {
+  const GameMainPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('游戏关卡')),
-      body: _tabs[_tabIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _tabIndex,
-        onTap: (index) {
-          setState(() {
-            _tabIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.filter_1), label: '数字关卡'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: '古诗词关卡'),
-        ],
+      appBar: AppBar(title: const Text('游戏关卡')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 220,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ModeSelectionPage(),
+                    ),
+                  );
+                },
+                child: const Text('数字方格', style: TextStyle(fontSize: 24)),
+              ),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: 220,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ModeSelectionPage(),
+                    ),
+                  );
+                },
+                child: const Text('古诗词方格', style: TextStyle(fontSize: 24)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'pages/login_register/login_page.dart';
+import 'pages/home_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -71,7 +71,7 @@ class MyApp extends StatelessWidget {
           unselectedItemColor: Colors.grey,
         ),
       ),
-      home: LoginPage(),
+      home: const HomePage(),
     );
   }
 }

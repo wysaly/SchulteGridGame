@@ -5,6 +5,8 @@ import 'game/game_main_page.dart';
 import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
