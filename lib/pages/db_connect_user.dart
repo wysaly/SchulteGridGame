@@ -9,8 +9,8 @@ class DBService {
   static final Map<String, dynamic> _config = {
     'host': "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
     'port': 4000,
-    'userName': "3JGJ6GdKHkJKyUS.root",
-    'password': "KAYqzxI9gUP8BoTe",
+    'userName': "dinUYBHKXo6XmCm.root",
+    'password': "40SCheAfyxOJjfNc",
     'databaseName': "game_management",
     'secure': true,
   };
@@ -85,13 +85,15 @@ class DBService {
     if (conn == null) return;
 
     try {
+      final now = DateTime.now();
       await conn.execute(
-        'INSERT INTO challenge_records (user_id, completion_time, challenge_type) '
-        'VALUES (:user_id, :completion_time, :challenge_type)',
+        'INSERT INTO challenge_records (user_id, completion_time, challenge_type, insert_time) '
+        'VALUES (:user_id, :completion_time, :challenge_type, :insert_time)',
         {
           'user_id': currentUserId,
           'completion_time': timeTaken,
           'challenge_type': challengeType,
+          'insert_time': now,
         },
       );
     } finally {
@@ -121,6 +123,64 @@ class DBService {
     }
   }
 
+  /// 根据范围随机获取一句古诗或句子及其详情
+  static Future<Map<String, String>?> getRandomSentence(
+    int minId,
+    int maxId,
+  ) async {
+    final conn = await connectIfNotConnected();
+    if (conn == null) return null;
+
+    try {
+      final result = await conn.execute(
+        'SELECT text, detail FROM sentences WHERE id BETWEEN :minId AND :maxId ORDER BY RAND() LIMIT 1',
+        {'minId': minId, 'maxId': maxId},
+      );
+
+      if (result.rows.isNotEmpty) {
+        final text = result.rows.first.typedColByName('text') as String?;
+        final detail = result.rows.first.typedColByName('detail') as String?;
+        return {'text': text ?? '', 'detail': detail ?? ''};
+      }
+      return null;
+    } catch (e) {
+      print('获取句子失败: $e');
+      return null;
+    } finally {
+      await conn.close();
+    }
+  }
+
+  /// 保存固定挑战记录到fix_challenge_records表
+  static Future<bool> saveFixedChallengeRecord(
+    Map<String, dynamic> recordData,
+  ) async {
+    if (currentUserId == null) return false;
+
+    final conn = await connectIfNotConnected();
+    if (conn == null) return false;
+
+    try {
+      // 添加当前时间戳（使用本地时间）
+      final now = DateTime.now();
+      recordData['insert_time'] = now;
+
+      await conn.execute(
+        'INSERT INTO fix_challenge_records ('
+        'user_id, level_ids, times, error_counts, total_time, total_error_count, insert_time) '
+        'VALUES (:user_id, :level_ids, :times, :error_counts, :total_time, :total_error_count, :insert_time)',
+        recordData,
+      );
+      print("✅ 固定挑战记录保存成功");
+      return true;
+    } catch (e) {
+      print("❌ 保存固定挑战记录失败: $e");
+      return false;
+    } finally {
+      await conn.close();
+    }
+  }
+
   static Future<void> closeConnection() async {
     if (_conn != null) {
       try {
@@ -131,6 +191,122 @@ class DBService {
       } finally {
         _conn = null;
       }
+    }
+  }
+
+  /// 获取全局Q表（所有状态-动作对的Q值）
+  static Future<Map<String, double>> getQTable() async {
+    final conn = await connectIfNotConnected();
+    if (conn == null) return {};
+
+    try {
+      final result = await conn.execute(
+        'SELECT state, action, q_value FROM q_learning_q_table',
+      );
+
+      final qTable = <String, double>{};
+      for (final row in result.rows) {
+        final state = row.typedColByName('state') as int;
+        final action = row.typedColByName('action') as int;
+        final qValue = row.typedColByName('q_value') as double;
+        qTable['$state-$action'] = qValue;
+      }
+
+      return qTable;
+    } catch (e) {
+      print('获取Q表失败: $e');
+      return {};
+    } finally {
+      await conn.close();
+    }
+  }
+
+  /// 更新全局Q表中的一个Q值
+  static Future<bool> updateQValue(
+    int state,
+    int action,
+    double newQValue,
+  ) async {
+    final conn = await connectIfNotConnected();
+    if (conn == null) return false;
+
+    try {
+      await conn.execute(
+        'INSERT INTO q_learning_q_table (state, action, q_value, update_count) '
+        'VALUES (:state, :action, :q_value, 1) '
+        'ON DUPLICATE KEY UPDATE '
+        'q_value = :q_value, update_count = update_count + 1',
+        {'state': state, 'action': action, 'q_value': newQValue},
+      );
+      return true;
+    } catch (e) {
+      print('更新Q值失败: $e');
+      return false;
+    } finally {
+      await conn.close();
+    }
+  }
+
+  /// 保存Q-Learning训练记录
+  static Future<bool> saveQLearningTrainingRecord(
+    Map<String, dynamic> recordData,
+  ) async {
+    if (currentUserId == null) return false;
+
+    final conn = await connectIfNotConnected();
+    if (conn == null) return false;
+
+    try {
+      // 添加当前时间戳（使用本地时间）
+      final now = DateTime.now();
+      recordData['insert_time'] = now;
+
+      await conn.execute(
+        'INSERT INTO qlearning_training_records ('
+        'user_id, level_ids, times, error_counts, states, actions, rewards, '
+        'total_time, total_error_count, epsilon, insert_time) '
+        'VALUES ('
+        ':user_id, :level_ids, :times, :error_counts, :states, :actions, :rewards, '
+        ':total_time, :total_error_count, :epsilon, :insert_time)',
+        recordData,
+      );
+      print('✅ Q-Learning训练记录保存成功');
+      return true;
+    } catch (e) {
+      print('❌ 保存Q-Learning训练记录失败: $e');
+      return false;
+    } finally {
+      await conn.close();
+    }
+  }
+
+  /// 保存阈值挑战记录到threshold_challenge_records表
+  static Future<bool> saveThresholdChallengeRecord(
+    Map<String, dynamic> recordData,
+  ) async {
+    if (currentUserId == null) return false;
+
+    final conn = await connectIfNotConnected();
+    if (conn == null) return false;
+
+    try {
+      // 添加当前时间戳（使用本地时间）
+      final now = DateTime.now();
+      recordData['insert_time'] = now;
+
+      await conn.execute(
+        'INSERT INTO threshold_challenge_records ('
+        'user_id, level_ids, times, error_counts, total_time, total_error_count, insert_time) '
+        'VALUES (:user_id, :level_ids, :times, :error_counts, :total_time, :total_error_count, :insert_time)',
+        recordData,
+      );
+      print("✅ 阈值挑战记录保存成功");
+      return true;
+    } catch (e) {
+      print("❌ 保存阈值挑战记录失败: $e");
+      return false;
+    } finally {
+      await conn.close();
     }
   }
 

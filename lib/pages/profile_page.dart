@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import './challenge_records_page.dart';
 import './db_connect_user.dart';
+import './login_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -99,52 +101,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showRecordsByType(int challengeType) async {
-    final records = await DBService.getChallengeRecords(
-      challengeType: challengeType,
-    );
-
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('${challengeType == 0 ? '数字方格' : '古诗方格'}挑战记录'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child:
-                  records.isEmpty
-                      ? const Text('暂无挑战记录')
-                      : ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: records.length,
-                        itemBuilder: (context, index) {
-                          final record = records[index];
-                          final date = DateTime.parse(
-                            record['timestamp'].toString(),
-                          );
-                          return ListTile(
-                            title: Text(
-                              '${record['time']}秒',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            subtitle: Text(
-                              '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
-                              '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
-                            ),
-                            dense: true,
-                          );
-                        },
-                      ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('返回'),
-              ),
-            ],
-          ),
+  void _showRecordsByType(int challengeType) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChallengeRecordsPage(challengeType: challengeType),
+      ),
     );
   }
 
@@ -193,6 +155,33 @@ class _ProfilePageState extends State<ProfilePage> {
                 label: const Text('挑战记录', style: TextStyle(fontSize: 18)),
                 onPressed: _showChallengeRecords,
                 style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // 退出登录按钮
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.logout),
+                label: const Text('退出登录', style: TextStyle(fontSize: 18)),
+                onPressed: () {
+                  DBService.currentUserId = null;
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginRegisterPage(),
+                    ),
+                    (route) => false,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

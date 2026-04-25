@@ -1,7 +1,7 @@
 // 主页，含底部导航
 import 'package:flutter/material.dart';
 
-import 'game/game_main_page.dart';
+import 'game/game_selection_page.dart';
 import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,7 +13,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  final List<Widget> _pages = [GameMainPage(), ProfilePage()];
+  final List<Widget> _pages = [const GameSelectionPage(), const ProfilePage()];
 
   @override
   Widget build(BuildContext context) {
